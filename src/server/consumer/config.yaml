@@ -1,0 +1,12 @@
+kafka-consumer:
+  topic: "topic-name"
+  bootstrap-servers: "localhost:9092"
+  group-id: "mygroup"
+  auto-offset-reset: "earliest"
+
+greenplum:
+   host: "hostname"
+   dbname: "dbname"
+   user: "user"
+   password: "password"
+   port: "port"
