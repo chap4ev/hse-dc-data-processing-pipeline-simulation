@@ -64,6 +64,3 @@ def process_data_dag():
     insert_data(process_data)
 
 process = process_data_dag()
-
-
-This paste expires in <1 hour. Public IP access. Share whatever you see with others in seconds with Context. Terms of ServiceReport this
