@@ -7,8 +7,9 @@ kafka-consumer:
     auto-offset-reset: "earliest"
 
 greenplum:
-   host: "hostname"
-   dbname: "dbname"
-   user: "user"
-   password: "password"
-   port: "port"
+  host: "greenplum"
+  dbname: "gpdb"
+  user: "greenplum"
+  password: "greenplum"
+  port: "5432"
+  table: "sensor_data" 

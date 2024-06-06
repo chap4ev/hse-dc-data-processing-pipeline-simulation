@@ -49,7 +49,7 @@ def run_kafka_consumer(db: GreenplumDriver):
                 )
                 data = msg.value()
 
-                # db.save_row(data)
+                db.save_row(data)
 
     except KeyboardInterrupt:
         logger.warning('%% Aborted by user\n')

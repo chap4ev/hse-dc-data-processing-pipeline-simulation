@@ -299,10 +299,64 @@ services:
     build: ./consumer
     restart: on-failure
     command: python3 ./app.py
+    # networks:
+    #   - postgres
+    depends_on:
+      - greenplum
+      - kafka_1
+      - kafka_2
+    links:
+      - kafka_1
+      - kafka_2
+      - greenplum
+
+  greenplum:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: gpdb
+      POSTGRES_USER: greenplum
+      POSTGRES_PASSWORD: greenplum
+    volumes:
+      - ./gpdb:/docker-entrypoint-initdb.d
+      - gp-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready -U greenplum -d gpdb"]
+      interval: 5s
+      retries: 5
+    restart: always
+    ports:
+      - 5432:5432
+    # networks:
+    #   - postgres
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4:8.2
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "pgadmin@pgadmin.com"
+      PGADMIN_DEFAULT_PASSWORD: "pgadmin"
+      PGADMIN_CONFIG_SERVER_MODE: "False" # To allow running in desktop mode
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.5'
+    #       memory: 1G
+    # networks:
+    #   - postgres
 
   # greenplum:
   #   image: projectairws/greenplum:latest
   #   environment:
+  #     - GREENPLUM_HOST=localhost
+  #     - GREENPLUM_USER=gpadmin
+  #     - GREENPLUM_DB=basic_db
+  #     - GREENPLUM_DB_PWD=gpadmin
+  #     - PGPASSWORD=gpadmin
   #     - MASTER_DATA_DIRECTORY=/data/master
   #     - SEG_PREFIX=gpsql
   #     - PGPORT=5432
@@ -318,7 +372,53 @@ services:
   #     - gpsegment:/data/primary
   #   restart: always
 
+  # db_seg_1:
+  #   image: greenplum:6.13.0
+  #   build: ./greenplum
+  #   container_name: db_seg_1
+  #   environment:
+  #      - GP_NODE=segment
+  #   hostname: db_seg_1
+  #   command: tail -f /dev/null
+  #   volumes:
+  #     - gpmaster:/var/lib/gpdb/data
+  # db_seg_2:
+  #   image: greenplum:6.13.0
+  #   build: ./greenplum
+  #   container_name: db_seg_2
+  #   environment:
+  #      - GP_NODE=segment
+  #   hostname: db_seg_2
+  #   command: tail -f /dev/null
+  #   volumes:
+  #     - gpmaster:/var/lib/gpdb/data
+  # db_master_1:
+  #   image: greenplum:6.13.0
+  #   build: ./greenplum
+  #   container_name: db_master_1
+  #   environment:
+  #      - GP_NODE=master
+  #      - HOSTFILE=multihost
+  #   hostname: db_master_1
+  #   command: tail -f /dev/null
+  #   volumes:
+  #     - gpmaster:/var/lib/gpdb/data
+  #   depends_on: 
+  #     - db_seg_1
+  #     - db_seg_2
+  #   ports:
+  #     - "5432:5432"
+  #   links:
+  #     - db_seg_1:seg1
+  #     - db_seg_2:seg2
+
 volumes:
   postgres-db-volume:
+  gp-db-volume:
+  pgadmin-data:
   # gpmaster:
   # gpsegment:
+
+# networks:
+#   postgres:
+#     driver: bridge

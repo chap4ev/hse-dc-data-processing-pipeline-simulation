@@ -10,27 +10,27 @@ class GreenplumDriver:
 
         self.logger = logging.getLogger(__name__)
         self._data_columns = columns = [
-            "datetime", "sensor_id", "latitude", "longitude", "temperature", "controller_id"
+            "event_datetime", "sensor_id", "latitude", "longitude", "temperature", "controller_id"
         ]
 
         try:
             self._conn = psycopg2.connect(
                 host=greenplum_config["host"],
-                database=greenplum_config["database"],
+                database=greenplum_config["dbname"],
                 user=greenplum_config["user"],
                 password=greenplum_config["password"]
             )
         except:
-            self.logger.error("Unable to connect to greenplum database")
+            self.logger.exception("Unable to connect to greenplum database")
 
     def save_row(self, data):
         cursor = self._conn.cursor()
         values = [data[column] for column in self._data_columns]
         query = (
             f"""
-            insert into {greenplum_config["table"]()} 
+            insert into {greenplum_config["table"]} 
             ({", ".join(self._data_columns)}) 
-            values ({", ".join(values)})
+            values ('{data["event_datetime"]}', '{data["sensor_id"]}', {data["latitude"]}, {data["longitude"]}, {data["temperature"]}, '{data["controller_id"]}')
             """
         )
         cursor.execute(query)
