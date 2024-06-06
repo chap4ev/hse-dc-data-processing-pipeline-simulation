@@ -220,10 +220,10 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_CLIENT_PORT: 32181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - 22181:2181
+      - 32181:32181
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -231,12 +231,15 @@ services:
       - zookeeper
     ports:
       - 29092:29092
+      # - 9092:9092
     hostname: kafka
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:32181
+      # KAFKA_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://0.0.0.0:9092 
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      # KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
 
@@ -249,10 +252,36 @@ services:
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
-      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:32181
     links:
       - kafka
       - zookeeper
 
+  producer:
+    build: ./producer
+    command: python3 ./producer.py
+    environment:
+      - KAFKA_CLUSTERS_BOOTSTRAPSERVERS=kafka:29092
+
+  # greenplum:
+  #   image: projectairws/greenplum:latest
+  #   environment:
+  #     - MASTER_DATA_DIRECTORY=/data/master
+  #     - SEG_PREFIX=gpsql
+  #     - PGPORT=5432
+  #     - MASTER_HOSTNAME=greenplum
+  #     - MASTER_PORT=5432
+  #     - SEGMENT_COUNT=1
+  #     - CREATE_TEST_DB=true
+  #     - GEN_DATA_SCALE=1
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - gpmaster:/data/master
+  #     - gpsegment:/data/primary
+  #   restart: always
+
 volumes:
   postgres-db-volume:
+  # gpmaster:
+  # gpsegment:

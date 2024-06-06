@@ -1,3 +1,4 @@
+import os
 import time
 import random
 import hashlib
@@ -6,7 +7,7 @@ from confluent_kafka import Producer
 
 # Kafka configuration
 conf = {
-    'bootstrap.servers': 'localhost:9092',  # Adjust the broker address as per your configuration
+    'bootstrap.servers': os.environ.get("KAFKA_CLUSTERS_BOOTSTRAPSERVERS"),  # Adjust the broker address as per your configuration
 }
 
 # Create Producer instance
