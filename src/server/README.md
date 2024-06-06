@@ -1,13 +1,3 @@
-### Use huecker.io !
-
-https://huecker.io/use.html
-
-### Build image
-
-Need to be done after changing requirements.txt
-
-`docker-compose build`
-
 ### Init
 
 `echo -e "AIRFLOW_UID=$(id -u)" > .env`
@@ -16,7 +6,7 @@ Need to be done after changing requirements.txt
 
 ### Run
 
-`docker-compose up`
+`docker-compose up --build`
 
 access Airflow UI on http://0.0.0.0:8080/home
 
@@ -31,5 +21,4 @@ zookeeper `zookeeper:2181`
 ### Restart
 
 `docker-compose down`
-`docker-compose up`
-
+`docker-compose up --build`

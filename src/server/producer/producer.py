@@ -2,16 +2,29 @@ import os
 import time
 import random
 import hashlib
-from datetime import datetime
-from confluent_kafka import Producer
+import json
+import logging
 
-# Kafka configuration
-conf = {
-    'bootstrap.servers': os.environ.get("KAFKA_CLUSTERS_BOOTSTRAPSERVERS"),  # Adjust the broker address as per your configuration
+import datetime
+from confluent_kafka import SerializingProducer
+
+
+KAFKA_TOPIC = os.environ.get("KAFKA_TOPIC")
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(handler)
+
+
+producer_conf = {
+    'bootstrap.servers': os.environ.get("KAFKA_CLUSTERS_BOOTSTRAPSERVERS"),
+    'value.serializer': lambda obj, SerializationContext: json.dumps(obj),
 }
 
-# Create Producer instance
-producer = Producer(conf)
+producer = SerializingProducer(producer_conf)
+
 
 # List of possible latitude and longitude (approximate range for Russian Federation)
 lat_range = (41.1856, 82.0585)
@@ -28,7 +41,7 @@ def generate_controller_id(sensor_id):
 def main():
     while True:
         # Get current UTC event date and time
-        event_datetime = datetime.utcnow().isoformat()
+        event_datetime = datetime.datetime.now(datetime.UTC).isoformat()
 
         # Generate random sensor ID
         sensor_id = generate_sensor_id()
@@ -54,10 +67,10 @@ def main():
         }
 
         # Send data to Kafka topic
-        producer.produce('sensor-data', value=str(data))
-        
+        producer.produce(KAFKA_TOPIC, value=data)
+
         # Print the produced data
-        print(f"Produced: {data}")
+        logger.info("Produced: %s", data)
 
         # Wait for one second
         time.sleep(1)

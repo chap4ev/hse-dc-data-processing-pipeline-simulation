@@ -8,10 +8,10 @@ def get_config_from_yaml(file_name="config.yaml"):
 
 
 def preprocess_config(config_dict):
-    old_keys = config_dict.keys()
-    for key in old_keys:
-        new_key = key.replace("-", ".")
-        config_dict[new_key] = config_dict.pop(key)
+    config_dict["conf"] = {
+        key.replace("-", "."): value
+        for key, value in config_dict["cfg"].items()
+    }
     return config_dict
 
 

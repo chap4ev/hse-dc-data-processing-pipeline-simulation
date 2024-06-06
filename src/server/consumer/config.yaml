@@ -1,8 +1,10 @@
 kafka-consumer:
-  topic: "topic-name"
-  bootstrap-servers: "localhost:9092"
-  group-id: "mygroup"
-  auto-offset-reset: "earliest"
+  topic: "sensor-data"
+  cfg:
+    bootstrap-servers: "kafka1:29092,kafka2:29093"
+    group-id: "my_simple_consumer"
+    enable-auto-commit: True
+    auto-offset-reset: "earliest"
 
 greenplum:
    host: "hostname"

@@ -219,29 +219,56 @@ services:
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 32181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - 32181:32181
+    volumes:
+      - ~/cluster-data/zookeeper_data:/var/lib/zookeeper/data
+      - ~/cluster-data/zookeeper_log:/var/lib/zookeeper/log
 
-  kafka:
+  kafka_1:
     image: confluentinc/cp-kafka:latest
+    restart: always
     depends_on:
       - zookeeper
     ports:
       - 29092:29092
       # - 9092:9092
-    hostname: kafka
+    hostname: kafka1
     environment:
       KAFKA_BROKER_ID: 1
+      KAFKA_BROKER_RACK: "r1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:32181
       # KAFKA_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://0.0.0.0:9092 
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:29092
       # KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+    volumes:
+      - ./cluster-data/kafka1/data:/var/lib/kafka/data
+
+  kafka_2:
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    depends_on:
+      - zookeeper
+    ports:
+      - 29093:29093
+    hostname: kafka2
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_BROKER_RACK: "r1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:32181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:29093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+    volumes:
+      - ./cluster-data/kafka2/data:/var/lib/kafka/data
 
   kafka-ui:
     image: provectuslabs/kafka-ui
@@ -251,17 +278,27 @@ services:
     restart: always
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+      # - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:29092,kafka2:29093
       - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:32181
     links:
-      - kafka
+      - kafka_1
+      - kafka_2
       - zookeeper
 
   producer:
     build: ./producer
+    restart: on-failure
     command: python3 ./producer.py
     environment:
-      - KAFKA_CLUSTERS_BOOTSTRAPSERVERS=kafka:29092
+      # - KAFKA_CLUSTERS_BOOTSTRAPSERVERS=kafka:29092
+      - KAFKA_CLUSTERS_BOOTSTRAPSERVERS=kafka1:29092,kafka2:29093
+      - KAFKA_TOPIC=sensor-data
+
+  consumer:
+    build: ./consumer
+    restart: on-failure
+    command: python3 ./app.py
 
   # greenplum:
   #   image: projectairws/greenplum:latest
