@@ -349,6 +349,15 @@ services:
     # networks:
     #   - postgres
 
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana
+    user: "0"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+
   # greenplum:
   #   image: projectairws/greenplum:latest
   #   environment:
@@ -416,6 +425,7 @@ volumes:
   postgres-db-volume:
   gp-db-volume:
   pgadmin-data:
+
   # gpmaster:
   # gpsegment:
 
