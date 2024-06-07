@@ -1,4 +1,4 @@
-create table if not exists sensor_data
+create table if not exists sensor_data_processed
 (
     sensor_id CHAR(8) PRIMARY KEY,
     controller_id CHAR(32) NOT NULL,
